@@ -1,0 +1,68 @@
+openvpn部署之部署基于AD域认证 #CemtOS 7#
+1.添加fedora的yum源
+yum install epel-release
+
+2.安装openvpn
+
+yum install openvpn -y
+yum -y install openssl openssl-devel -y 
+yum -y install lzo lzo-devel  -y 
+yum install -y libgcrypt libgpg-error libgcrypt-devel
+3.安装openvpn认证插件
+
+yum install openvpn-auth-ldap -y
+4.安装easy-rsa 
+由于openvpn2.3之后，在openvpn里面剔除了easy-rsa文件，所以需要单独安装
+
+yum install easy-rsa
+
+cp -rf /usr/share/easy-rsa/2.0 /etc/opevpn/
+5.生成openvpn的key及证书
+
+修改/opt/openvpn/etc/easy-rsa/2.0/vars参数
+
+shell#vim vars
+
+export KEY_COUNTRY="CN"                 国家
+
+export KEY_PROVINCE="ZJ"                省份
+
+export KEY_CITY="NingBo"                城市
+
+export KEY_ORG="TEST-VPN"               组织
+
+exportKEY_EMAIL="81367070@qq.com"       邮件
+
+export KEY_OU="baidu"                   单位
+保存退出
+
+source vars
+
+
+./clean-all
+./build-ca
+./build-dh
+./build-key-server server
+./build-key client1
+6.编辑openvpn服务端配置文件：
+
+7.配置文件内容见server目录下的server.conf 和server/auth下的ldap.conf
+
+8.拷贝/etc/openvpn/key目录下的ca.crt证书，以备客户端使用。
+
+注：客户端使用ca.crt和客户端配置文件即可正常使用openvpn了，客户端使用方法，不在本文范围之内
+
+cat client.ovpn
+client
+dev tun
+proto udp                  //注意协议，跟服务器保持一致
+remote xx.xx.com 1194     //xx.xx.com替换为你的服务器ip
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+ca ca.crt
+auth-user-pass            //客户端使用账户密码登陆的选项，用于客户端弹出认证用户的窗口
+comp-lzo
+verb 3
+

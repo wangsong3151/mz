@@ -1,0 +1,68 @@
+#思科路由器添加端口映射(为员工设置办公电脑远程连接)
+#顺序执行以下命令
+
+1.#登录路由器
+telnet 10.10.xx.xx
+
+2.用户名密码验证通过后出现以下界面
+hostname>
+
+3. 输入en，回车，再次输入密码，出现以下界面
+hostname#
+
+4. 执行 sh run，可以查看到路由器信息，包括已有的端口映射，即nat条目
+#添加一条新的端口映射
+
+config t
+
+ip nat inside source static tcp 10.10.38.xx 3389 124.65.xxx.xxx 34013 extendable
+
+#去除一条映射
+no ip nat inside source static tcp 10.10.38.xx 3389 124.65.xxx.xxx 34013 extendable
+
+
+##cisco 2921/k9恢复初始设置
+1. PC通过COM口连接到路由器
+2. 路由器断电
+3. 拔掉闪存卡(路由器背面)
+4. 启动路由器，路由器在尝试几次找不到闪存卡之后，会进入到rommon模式
+5. 在rommon 1> 界面输入 confreg 0x2142
+6. 在rommon 2> 界面输入 reset ,路由器会重启
+7. Would you like to enter the initial configuration dialog? [yes/no]: no
+8. Router>enable
+9. Router#
+10. configure memory 或copy startup-config running-config和write
+11. show running-config
+12. configure terminal
+
+
+
+###
+interface GigabitEthernet0/0
+ ip address 123.127.xxx.xxx 255.255.255.248
+ ip nat outside
+
+interface GigabitEthernet0/1
+ip address 10.10.9.2 255.255.255.0
+ip nat inside
+
+#外网网关
+ip route 0.0.0.0 0.0.0.0 123.127.xxx.xxx
+
+#内网网段默认路由（三层交换上与路由器相连的借口的ip地址）
+ip route 10.10.5.0 255.255.255.0 10.10.9.1
+ip route 10.10.6.0 255.255.255.0 10.10.9.1
+ip route 10.10.7.0 255.255.255.0 10.10.9.1
+ip route 10.10.8.0 255.255.255.0 10.10.9.1
+ip route 10.10.9.0 255.255.255.0 10.10.9.1
+ip route 10.10.10.0 255.255.255.0 10.10.9.1
+ip route 10.10.11.0 255.255.255.0 10.10.9.1
+
+
+access-list 1 permit 10.10.8.0 0.0.0.255
+access-list 1 permit 10.10.7.0 0.0.0.255
+access-list 1 permit 10.10.6.0 0.0.0.255
+access-list 1 permit 10.10.5.0 0.0.0.255
+access-list 1 permit 10.10.11.0 0.0.0.255
+access-list 1 permit 10.10.10.0 0.0.0.255
+access-list 1 permit 10.10.9.0 0.0.0.255

@@ -1,0 +1,41 @@
+#git-2.2.0 on CentOS6
+#安装依赖库
+yum install perl expat-devel zlib-devel curl-devel openssl-devel gettext-devel -y
+#apt-get install libcurl4-gnutls-dev libexpat1-dev gettext libz-dev libssl-dev
+
+##预编译安装##
+#yum install git-core
+#apt-get install git
+
+#源码安装#
+##获取最新源码##
+#https://www.kernel.org/pub/software/scm/git/
+#git clone https://github.com/git/git
+
+##安装libiconv##
+tar zxvf libiconv-1.14.tar.gz && cd tar zxvf libiconv-1.14
+./configure --prefix=/usr
+make && make install
+
+#手动安装libiconv是解决如下错误
+#/Data/software/git-2.2.0/utf8.c:515: undefined reference to `libiconv_open'
+#collect2: ld returned 1 exit status
+#make: *** [git-credential-store] Error 1
+##找不到libiconv库
+
+
+#安装git##
+tar zxvf git-2.2.0.tar.gz && cd git-2.2.0
+make configure
+./configure --prefix=/usr/local
+make
+#make过程中出现错误：
+#make[1]: *** [perl.mak] Error 2
+#make: *** [perl/perl.mak] Error 2
+#解决：
+yum install perl-ExtUtils-MakeMaker -y
+make
+make install
+
+#git的项目仓库克隆到本地，以便更新
+git clone git://git.kernel.org/pub/scm/git/git.git

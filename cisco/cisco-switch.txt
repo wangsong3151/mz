@@ -1,0 +1,82 @@
+#### cisco 3650
+
+show vlan
+
+conf t
+vlan 10
+name office-wired
+exit
+
+vlan 20
+name office-wireless
+exit
+
+
+#给vlan划分端口
+int ra g1/0/2 -12
+
+
+int vlan 10
+ip add 10.10.8.1 255.255.255.0
+no shut
+exit
+
+#三层交换与路由器相连的接口的状态：
+no switchport
+ip address 10.10.9.1 255.255.255.0
+
+
+
+
+
+#删除vlan接口
+no int vlan 10
+
+
+
+#接口状态
+show ip int b
+
+
+# dhcp (为不同VLAN下的设备分配不同的ip地址)
+conf t
+ip dhcp pool vlan50
+network 10.10.10.0 255.255.255.0
+default-router 10.10.10.2
+dns-server 10.10.8.8
+lease 2
+
+exit
+
+ip dhcp pool vlan60
+network 10.10.11.0 255.255.255.0
+default-router 10.10.11.2
+dns-server 10.10.8.8
+lease 2
+
+exit
+
+#设置保留ip
+ip dhcp excluded-address low-address [high-address]
+
+
+##ACL
+# 6网段(vlan 20)禁止访问8网段(vlan 30)，但10.10.8.8除外
+conf t
+access-list 100 permit ip 10.10.6.0 0.0.0.255 10.10.8.8 0.0.0.0
+access-list 100 deny ip 10.10.6.0 0.0.0.255 10.10.8.0 0.0.0.255
+access list 100 permit any any
+
+int vlan 20
+ip access-group 100 in
+
+#或者
+int vlan 30
+ip access-group 100 out
+
+
+#添加一条ACL
+conf t
+ip access-list extended 100
+12 permit ip 10.10.6.0 0.0.0.255 10.10.8.15 0.0.0.0
+no 12 #删除一条ACL

@@ -1,0 +1,41 @@
+#tcl##
+#"You need tcl 8.5 or newer in order to run the Redis test"
+tar zxvf tcl8.6.4-src.tar.gz && cd tcl8.6.4/unix
+./configure --prefix=/usr && make && make install
+
+###################################################################
+tar zxvf redis-3.0.5.tar.gz && cd redis-3.0.5
+
+make
+
+##########################make若遇到错误：###############################
+#zmalloc.h:50:31: error: jemalloc/jemalloc.h: No such file or directory
+#zmalloc.h:55:2: error: #error "Newer version of jemalloc required"
+#make[1]: *** [adlist.o] Error 1
+#make[1]: Leaving directory `/data0/src/redis-2.6.2/src'
+#make: *** [all] Error 2
+##解决方案
+#make MAKLOC=libc
+############################################################################
+
+make test 
+make install 默认安装到/usr/local/bin下
+
+#将redis安装到指定位置
+make PREFIX=/path  install
+
+sh utils/install_server.sh 
+
+
+# settings
+echo "vm.overcommit_memory=1" >> /etc/sysctl.conf
+#默认值为：0
+#从内核文档里得知，该参数有三个值，分别是：
+#0：当用户空间请求更多的的内存时，内核尝试估算出剩余可用的内存。
+#1：当设这个参数值为1时，内核允许超量使用内存直到用完为止，主要用于科学计算
+#2：当设这个参数值为2时，内核会使用一个决不过量使用内存的算法，即系统整个内存地址空间不能超过swap+50%的RAM值，50%参数的设定是在overcommit_ratio中设定。
+
+
+echo "never" > /sys/kernel/mm/transparent_hugepage/enabled
+
+sysctl -p
